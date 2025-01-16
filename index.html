@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handel Samochodami Marcela</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .inventory {
+            margin-top: 20px;
+        }
+        .inventory-item {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Handel Samochodami Marcela</h1>
+    <p id="status">Kapitał Marcela: $10000<br>Liczba samochodów: 0</p>
+
+    <button class="button" onclick="buyCar()">Kup samochód</button>
+    <button class="button" onclick="tuneCar()">Tuninguj samochód</button>
+    <button class="button" onclick="sellCar()">Sprzedaj samochód</button>
+
+    <div class="inventory" id="inventory">
+        <h2>Inwentarz:</h2>
+        <div id="inventory-list"></div>
+    </div>
+
+    <script>
+        let marcelMoney = 10000;
+        let inventory = [];
+
+        const cars = [
+            { model: "Toyota Corolla", basePrice: 5000 },
+            { model: "BMW 3 Series", basePrice: 8000 },
+            { model: "Honda Civic", basePrice: 6000 },
+            { model: "Ford Mustang", basePrice: 12000 },
+            { model: "Chevrolet Camaro", basePrice: 15000 },
+        ];
+
+        const parts = [
+            { name: "Nowe opony", cost: 500, valueIncrease: 1000 },
+            { name: "Turbo", cost: 2000, valueIncrease: 5000 },
+            { name: "Lakierowanie", cost: 1500, valueIncrease: 3000 },
+            { name: "Sportowe zawieszenie", cost: 1000, valueIncrease: 2500 },
+            { name: "Silnik V8", cost: 5000, valueIncrease: 10000 },
+        ];
+
+        function updateStatus() {
+            document.getElementById("status").innerHTML = `Kapitał Marcela: $${marcelMoney}<br>Liczba samochodów: ${inventory.length}`;
+            updateInventory();
+        }
+
+        function updateInventory() {
+            const inventoryList = document.getElementById("inventory-list");
+            inventoryList.innerHTML = "";
+            inventory.forEach((car, index) => {
+                const item = document.createElement("div");
+                item.className = "inventory-item";
+                item.innerHTML = `${car.model} (Wartość: $${car.value})`;
+                inventoryList.appendChild(item);
+            });
+        }
+
+        function buyCar() {
+            const carOptions = cars.map((car, index) => `${index + 1}. ${car.model} - Cena: $${car.basePrice}`).join("\n");
+            const choice = prompt(`Wybierz samochód do kupienia:\n${carOptions}`);
+            const carIndex = parseInt(choice) - 1;
+
+            if (carIndex >= 0 && carIndex < cars.length) {
+                const car = cars[carIndex];
+                if (marcelMoney >= car.basePrice) {
+                    marcelMoney -= car.basePrice;
+                    inventory.push({ model: car.model, value: car.basePrice });
+                    alert(`Kupiłeś ${car.model} za $${car.basePrice}`);
+                } else {
+                    alert("Nie masz wystarczająco pieniędzy!");
+                }
+            } else {
+                alert("Nieprawidłowy wybór.");
+            }
+
+            updateStatus();
+        }
+
+        function tuneCar() {
+            if (inventory.length === 0) {
+                alert("Nie masz samochodów do tuningu!");
+                return;
+            }
+
+            const carOptions = inventory.map((car, index) => `${index + 1}. ${car.model} (Wartość: $${car.value})`).join("\n");
+            const carChoice = prompt(`Wybierz samochód do tuningu:\n${carOptions}`);
+            const carIndex = parseInt(carChoice) - 1;
+
+            if (carIndex >= 0 && carIndex < inventory.length) {
+                const car = inventory[carIndex];
+                const partOptions = parts.map((part, index) => `${index + 1}. ${part.name} - Koszt: $${part.cost}, Wzrost wartości: $${part.valueIncrease}`).join("\n");
+                const partChoice = prompt(`Wybierz część do tuningu:\n${partOptions}`);
+                const partIndex = parseInt(partChoice) - 1;
+
+                if (partIndex >= 0 && partIndex < parts.length) {
+                    const part = parts[partIndex];
+                    if (marcelMoney >= part.cost) {
+                        marcelMoney -= part.cost;
+                        car.value += part.valueIncrease;
+                        alert(`Dodałeś ${part.name} do ${car.model}.`);
+                    } else {
+                        alert("Nie masz wystarczająco pieniędzy!");
+                    }
+                } else {
+                    alert("Nieprawidłowy wybór części.");
+                }
+            } else {
+                alert("Nieprawidłowy wybór samochodu.");
+            }
+
+            updateStatus();
+        }
+
+        function sellCar() {
+            if (inventory.length === 0) {
+                alert("Nie masz samochodów do sprzedaży!");
+                return;
+            }
+
+            const carOptions = inventory.map((car, index) => `${index + 1}. ${car.model} (Wartość: $${car.value})`).join("\n");
+            const choice = prompt(`Wybierz samochód do sprzedaży:\n${carOptions}`);
+            const carIndex = parseInt(choice) - 1;
+
+            if (carIndex >= 0 && carIndex < inventory.length) {
+                const car = inventory.splice(carIndex, 1)[0];
+                marcelMoney += car.value;
+                alert(`Sprzedałeś ${car.model} za $${car.value}`);
+            } else {
+                alert("Nieprawidłowy wybór.");
+            }
+
+            updateStatus();
+        }
+
+        updateStatus();
+    </script>
+</body>
+</html>
