@@ -28,20 +28,29 @@
         .inventory-item {
             margin: 5px 0;
         }
+        #actions {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>Marcel prywaciorz handlorz</h1>
     <p id="status">Kapitał Marcela: $10000<br>Liczba samochodów: 0</p>
 
-    <button class="button" onclick="buyCar()">Kup samochód</button>
-    <button class="button" onclick="tuneCar()">Tuninguj samochód</button>
-    <button class="button" onclick="sellCar()">Sprzedaj samochód</button>
+    <button class="button" onclick="showBuyOptions()">Kup samochód</button>
+    <button class="button" onclick="showTuneOptions()">Tuninguj samochód</button>
+    <button class="button" onclick="showSellOptions()">Sprzedaj samochód</button>
 
     <div class="inventory" id="inventory">
         <h2>Inwentarz:</h2>
         <div id="inventory-list"></div>
     </div>
+
+    <div id="actions"></div>
 
     <script>
         let marcelMoney = 10000;
@@ -66,6 +75,7 @@
         function updateStatus() {
             document.getElementById("status").innerHTML = `Kapitał Marcela: $${marcelMoney}<br>Liczba samochodów: ${inventory.length}`;
             updateInventory();
+            document.getElementById("actions").innerHTML = "";
         }
 
         function updateInventory() {
@@ -79,80 +89,95 @@
             });
         }
 
-        function buyCar() {
-            const carOptions = cars.map((car, index) => `${index + 1}. ${car.model} - Cena: $${car.basePrice}`).join("\n");
-            const choice = prompt(`Wybierz samochód do kupienia:\n${carOptions}`);
-            const carIndex = parseInt(choice) - 1;
+        function showBuyOptions() {
+            const actionsDiv = document.getElementById("actions");
+            actionsDiv.innerHTML = "<h3>Wybierz samochód do kupienia:</h3>";
 
-            if (carIndex >= 0 && carIndex < cars.length) {
-                const car = cars[carIndex];
-                if (marcelMoney >= car.basePrice) {
-                    marcelMoney -= car.basePrice;
-                    inventory.push({ model: car.model, value: car.basePrice });
-                    alert(`Kupiłeś ${car.model} za $${car.basePrice}`);
-                } else {
-                    alert("Nie masz wystarczająco pieniędzy!");
-                }
-            } else {
-                alert("Nieprawidłowy wybór.");
-            }
-
-            updateStatus();
+            cars.forEach((car, index) => {
+                const button = document.createElement("button");
+                button.className = "button";
+                button.innerText = `${car.model} - Cena: $${car.basePrice}`;
+                button.onclick = () => buyCar(index);
+                actionsDiv.appendChild(button);
+            });
         }
 
-        function tuneCar() {
+        function buyCar(carIndex) {
+            const car = cars[carIndex];
+            if (marcelMoney >= car.basePrice) {
+                marcelMoney -= car.basePrice;
+                inventory.push({ model: car.model, value: car.basePrice });
+                updateStatus();
+            } else {
+                alert("Nie masz wystarczająco pieniędzy!");
+            }
+        }
+
+        function showTuneOptions() {
             if (inventory.length === 0) {
                 alert("Nie masz samochodów do tuningu!");
                 return;
             }
 
-            const carOptions = inventory.map((car, index) => `${index + 1}. ${car.model} (Wartość: $${car.value})`).join("\n");
-            const carChoice = prompt(`Wybierz samochód do tuningu:\n${carOptions}`);
-            const carIndex = parseInt(carChoice) - 1;
+            const actionsDiv = document.getElementById("actions");
+            actionsDiv.innerHTML = "<h3>Wybierz samochód do tuningu:</h3>";
 
-            if (carIndex >= 0 && carIndex < inventory.length) {
-                const car = inventory[carIndex];
-                const partOptions = parts.map((part, index) => `${index + 1}. ${part.name} - Koszt: $${part.cost}, Wzrost wartości: $${part.valueIncrease}`).join("\n");
-                const partChoice = prompt(`Wybierz część do tuningu:\n${partOptions}`);
-                const partIndex = parseInt(partChoice) - 1;
-
-                if (partIndex >= 0 && partIndex < parts.length) {
-                    const part = parts[partIndex];
-                    if (marcelMoney >= part.cost) {
-                        marcelMoney -= part.cost;
-                        car.value += part.valueIncrease;
-                        alert(`Dodałeś ${part.name} do ${car.model}.`);
-                    } else {
-                        alert("Nie masz wystarczająco pieniędzy!");
-                    }
-                } else {
-                    alert("Nieprawidłowy wybór części.");
-                }
-            } else {
-                alert("Nieprawidłowy wybór samochodu.");
-            }
-
-            updateStatus();
+            inventory.forEach((car, index) => {
+                const button = document.createElement("button");
+                button.className = "button";
+                button.innerText = `${car.model} (Wartość: $${car.value})`;
+                button.onclick = () => showPartOptions(index);
+                actionsDiv.appendChild(button);
+            });
         }
 
-        function sellCar() {
+        function showPartOptions(carIndex) {
+            const actionsDiv = document.getElementById("actions");
+            actionsDiv.innerHTML = "<h3>Wybierz część do tuningu:</h3>";
+
+            parts.forEach((part, index) => {
+                const button = document.createElement("button");
+                button.className = "button";
+                button.innerText = `${part.name} - Koszt: $${part.cost}, Wzrost wartości: $${part.valueIncrease}`;
+                button.onclick = () => tuneCar(carIndex, index);
+                actionsDiv.appendChild(button);
+            });
+        }
+
+        function tuneCar(carIndex, partIndex) {
+            const car = inventory[carIndex];
+            const part = parts[partIndex];
+
+            if (marcelMoney >= part.cost) {
+                marcelMoney -= part.cost;
+                car.value += part.valueIncrease;
+                updateStatus();
+            } else {
+                alert("Nie masz wystarczająco pieniędzy!");
+            }
+        }
+
+        function showSellOptions() {
             if (inventory.length === 0) {
                 alert("Nie masz samochodów do sprzedaży!");
                 return;
             }
 
-            const carOptions = inventory.map((car, index) => `${index + 1}. ${car.model} (Wartość: $${car.value})`).join("\n");
-            const choice = prompt(`Wybierz samochód do sprzedaży:\n${carOptions}`);
-            const carIndex = parseInt(choice) - 1;
+            const actionsDiv = document.getElementById("actions");
+            actionsDiv.innerHTML = "<h3>Wybierz samochód do sprzedaży:</h3>";
 
-            if (carIndex >= 0 && carIndex < inventory.length) {
-                const car = inventory.splice(carIndex, 1)[0];
-                marcelMoney += car.value;
-                alert(`Sprzedałeś ${car.model} za $${car.value}`);
-            } else {
-                alert("Nieprawidłowy wybór.");
-            }
+            inventory.forEach((car, index) => {
+                const button = document.createElement("button");
+                button.className = "button";
+                button.innerText = `${car.model} (Wartość: $${car.value})`;
+                button.onclick = () => sellCar(index);
+                actionsDiv.appendChild(button);
+            });
+        }
 
+        function sellCar(carIndex) {
+            const car = inventory.splice(carIndex, 1)[0];
+            marcelMoney += car.value;
             updateStatus();
         }
 
